@@ -1,0 +1,135 @@
+#include<LiquidCrystal.h>
+#include <Servo.h>
+const int IRsensor1 = A2;
+const int IRsensor2 = A1;
+const int BUZZER = 10;
+const int Rled = 11;
+const int Gled = 12;
+const int Tp=4;
+const int echo=2;
+LiquidCrystal lcd(3,9,8,13,7,1);
+Servo myservo1;
+Servo myservo2;
+void setup()
+{
+ lcd.begin(16,2);
+ pinMode(IRsensor1, INPUT);
+ pinMode(IRsensor2, INPUT);
+ pinMode(BUZZER, OUTPUT);
+ pinMode(Rled, OUTPUT);
+ pinMode(Gled, OUTPUT);
+ pinMode(Tp,OUTPUT);
+ pinMode(echo,INPUT);
+ myservo1.attach(5); // Servo motor 1 pin connected to D5
+ myservo2.attach(6); // Servo motor 2 pin connected to D5
+ myservo1.write(0); // sets the servo at 0 degree position
+ myservo2.write(0);
+ lcd.setCursor(5,0);
+ lcd.print("START");
+ }
+void loop()
+{
+ digitalWrite(Tp,HIGH);
+ delayMicroseconds(1);
+ digitalWrite(Tp,LOW);
+ long duration1=pulseIn(echo,HIGH);
+ int distance1=duration1*0.034/2;
+ delayMicroseconds(1);
+ digitalWrite(Tp,HIGH);
+ delayMicroseconds(1);
+ digitalWrite(Tp,LOW);
+ long duration2=pulseIn(echo,HIGH);
+ int distance2=duration2*0.034/2;
+ int speed=((distance1-distance2)/1.0);
+int Sensordata1 = digitalRead(IRsensor1); // read degital data from IR sensor1
+ int Sensordata2 = digitalRead(IRsensor2); // read degital data from IR sensor2
+ myservo1.write(180); // sets the servo at 0 degree position
+ myservo2.write(180); // sets the servo at 0 degree position
+
+/*TRAIN ENTERING NEAR TO RAILWAY LEVEL CROSSING*/
+
+ if (Sensordata1 == HIGH && Sensordata2 ==LOW)
+ {
+ myservo2.write(50); // sets the servo at 90 degree position
+ myservo1.write(50); // sets the servo at 90 degree position
+ digitalWrite(BUZZER, HIGH); // turn on buzzer
+ digitalWrite(Rled, HIGH); // turn on Red LED
+ digitalWrite(Gled, 0);
+ lcd.clear();
+ for(int j=15;j>=0;j--)
+ {
+ lcd.setCursor(j,0);
+ lcd.print(" GATES CLOSED ");
+ delay(150);}
+ char n[30]={" **TRAIN SPEED**"};
+ for(int l=15,k=0;l>=0,k<=15;k++,l--)
+ {
+ lcd.setCursor(k,0);
+ lcd.print(n[k]);
+ lcd.setCursor(l,1);
+ lcd.print(speed);
+ lcd.print(" cm/sec ");
+ delay(50);
+ }
+ delay(200);
+}
+
+/*TRIAN PASSED OUT THE RAILWAY LEVEL CROSSING*/
+
+ else if (Sensordata1 == LOW && Sensordata2 ==HIGH)
+ {
+ myservo1.write(180); // sets the servo at 0 degree position
+ myservo2.write(180); // sets the servo at 0 degree position
+ digitalWrite(Gled, HIGH); // turn on Yellow LED
+ digitalWrite(BUZZER, LOW); // turn off buzzer
+ digitalWrite(Rled, LOW);
+ lcd.clear();
+ for(int m=15;m>=0;m--)
+ {
+ lcd.setCursor(m,0);
+lcd.print(" GATES OPEN ");
+ delay(100);
+ }
+ delay(1000);
+ }
+
+/*TRAIN AT THE RAILWAY LEVEL CROSSING*/
+
+ else if (Sensordata1 == LOW && Sensordata2 == LOW)
+ {
+ myservo2.write(50); // sets the servo at 90 degree position
+ myservo1.write(50); // sets the servo at 90 degree position
+ digitalWrite(BUZZER, LOW);
+ digitalWrite(Rled, HIGH); // turn on Red LED
+ digitalWrite(Gled, 0);
+ lcd.clear();
+ char o[20]={"GATES CLOSED"};
+ for(int p=0;p<=15;p++)
+ {
+ lcd.setCursor(p,0);
+ lcd.print(o[p]);
+ delay(10);
+ }
+ delay(1000);
+ }
+
+/*IN OTHER CASES i.e: NO TRAIN IS NEAR TO THE RAILWAY LEVEL
+CROSSING*/
+ else
+ {
+ myservo1.write(180); // sets the servo at 0 degree position
+ myservo2.write(180); // sets the servo at 0 degree position
+ digitalWrite(Gled, HIGH); // turn on Yellow LED
+ digitalWrite(BUZZER, LOW); // turn off buzzer
+ digitalWrite(Rled, 0);
+ lcd.clear();
+ for(int i=15;i>=0;i--)
+ {
+ lcd.setCursor(i,0);
+lcd.print(" GATES OPEN ");
+ delay(100);
+ }
+ delay(100);
+ lcd.clear();
+ }
+}
